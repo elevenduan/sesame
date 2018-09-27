@@ -21,7 +21,9 @@ export default {
     WingBlank,
     WhiteSpace,
     PlaceHolder: {
-      template: '<div class="placeholder">Block</div>'
+      render () {
+        return <div class="placeholder">Block</div>
+      }
     }
   }
 }
