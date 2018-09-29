@@ -10,6 +10,7 @@ import Icon from './views/Icon'
 import Button from './views/Button'
 import NavBar from './views/NavBar'
 import Toast from './views/Toast'
+import Tabs from './views/Tabs'
 
 Vue.use(Router)
 
@@ -50,6 +51,10 @@ export default new Router({
     {
       path: '/toast',
       component: Toast
+    },
+    {
+      path: '/tabs',
+      component: Tabs
     }
   ]
 })
