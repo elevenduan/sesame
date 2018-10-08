@@ -1,80 +1,77 @@
 <script>
-export default {
-  props: {
-    prefixCls: {
-      type: String,
-      default: 'am-tabs'
-    },
-    tabBarPosition: {
-      type: String,
-      default: 'top',
-      validator: function (value) {
-        return ['top', 'bottom', 'left', 'right'].indexOf(value) !== -1
+  export default {
+    props: {
+      prefixCls: {
+        type: String,
+        default: 'am-tabs'
+      },
+      tabBarPosition: {
+        type: String,
+        default: 'top',
+        validator: function (value) {
+          return ['top', 'bottom', 'left', 'right'].indexOf(value) !== -1
+        }
+      },
+      initialTab: {
+        type: Number,
+        default: 1
+      },
+      animated: {
+        type: Boolean,
+        default: true
+      },
+      onTabClick: {
+        type: Function
       }
     },
-    initialTab: {
-      type: Number,
-      default: 1
+    data () {
+      return {
+        activeTab: this.initialTab - 1
+      }
     },
-    swipeable: {
-      type: Boolean,
-      default: true
+    methods: {
+      tabClick: function (index) {
+        this.activeTab = index
+      }
     },
-    useOnPan: {
-      type: Boolean,
-      default: true
-    },
-    animated: {
-      type: Boolean,
-      default: true
-    },
-    onChange: {
-      type: Function
-    },
-    onTabClick: {
-      type: Function
-    }
-  },
-  data () {
-    return {
-      activeTab: this.initialTab - 1
-    }
-  },
-  methods: {
-    tabClick: function (index) {
-      this.activeTab = index
-      console.log('tabClick')
-    }
-  },
-  render: function (h) {
-    let { prefixCls, tabBarPosition, activeTab, animated, tabClick, $slots: { tabBar, tabContent } } = this
+    render: function (h) {
+      let {prefixCls, tabBarPosition, activeTab, animated, tabClick, $slots: {tabBar, tabContent}} = this
 
-    let horizontalDirection = ['top', 'bottom'].indexOf(tabBarPosition) !== -1
-    let whStyle = { [horizontalDirection ? 'width' : 'height']: `${100 / tabBar.length}%` }
-    let underlineStyle = { ...whStyle, [horizontalDirection ? 'left' : 'top']: `${100 / tabBar.length * activeTab}%` }
+      let horizontalDirection = ['top', 'bottom'].indexOf(tabBarPosition) !== -1
+      let whStyle = {[horizontalDirection ? 'width' : 'height']: `${100 / tabBar.length}%`}
+      let underlineStyle = {...whStyle, [horizontalDirection ? 'left' : 'top']: `${100 / tabBar.length * activeTab}%`}
+      let contentStyle = horizontalDirection
+        ? {transform: `translate3d(${-activeTab * 100}%, 0, 0)`}
+        : {transform: `translate3d(0, ${-activeTab * 100}%, 0)`}
 
-    let tabBarEx = tabBar.map((item, index) => {
-      return <div class={`${prefixCls}-tab-bar-item ${activeTab === index ? prefixCls + '-tab-bar-item-active' : ''}`}
-        style={whStyle}
-        onClick={() => { tabClick(index) }}>{item}</div>
-    })
-    let tabContentEx = tabContent.map((item) => {
-      return <div class={`${prefixCls}-tab-content-item`}>{item}</div>
-    })
+      let tabBarEx =
+        tabBar.map((item, index) => {
+          return (
+            <div class={`${prefixCls}-tab-bar-item ${activeTab === index ? prefixCls + '-tab-bar-item-active' : ''}`}
+                 style={whStyle}
+                 onClick={() => { tabClick(index) }}>
+              {item}
+            </div>
+          )
+        })
+      let tabContentEx =
+        tabContent.map((item) => {
+          return <div class={`${prefixCls}-tab-content-item`}>{item}</div>
+        })
 
-    return (
-      <div class={`${prefixCls} ${prefixCls}-${tabBarPosition} ${animated ? prefixCls + '-animated' : ''}`}>
-        <div class={`${prefixCls}-tab-bar`}>
-          {tabBarEx}
-          <div class={`${prefixCls}-tab-bar-underline`} style={underlineStyle}/>
+      return (
+        <div class={`${prefixCls} ${prefixCls}-${tabBarPosition} ${animated ? prefixCls + '-animated' : ''}`}>
+          <div class={`${prefixCls}-tab-bar`}>
+            {tabBarEx}
+            <div class={`${prefixCls}-tab-bar-underline`} style={underlineStyle}/>
+          </div>
+          <div class={`${prefixCls}-tab-content`} style={contentStyle}>
+            {tabContentEx}
+          </div>
         </div>
-        <div className={`${prefixCls}-tab-content`}>
-          {tabContentEx}
-        </div>
-      </div>
-    )
+      )
+    }
   }
-}
 </script>
 <style lang="less">
   @import "../style/index.less";
@@ -85,6 +82,7 @@ export default {
 
   @easing-in-out: cubic-bezier(0.35, 0, 0.25, 1);
   @effect-duration: .3s;
+
   @page-hide-color: rgba(255, 255, 255, 0);
   @page-show-color: rgba(255, 255, 255, 1);
 
@@ -97,20 +95,21 @@ export default {
     overflow: hidden;
     background-color: @fill-base;
     .@{tab-bar} {
-      position: relative;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      box-sizing: border-box;
+      position: relative;
       text-align: center;
       overflow: visible;
       z-index: 1;
+      flex-shrink: 0;
       &-item {
         box-sizing: border-box;
         flex-shrink: 0;
         font-size: @tabs-font-size-heading;
-        height: @tabs-height;
-        line-height: @tabs-height;
         padding: 0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       &-item-active {
         color: @tabs-color;
@@ -121,33 +120,33 @@ export default {
         border: 0 @tabs-color solid;
         transform: translate3d(0, 0, 0);
       }
-
-      &-animated &-content {
-        transition: transform @effect-duration @easing-in-out;
-        will-change: transform;
-      }
-
-      &-animated &-underline {
-        transition: top @effect-duration @easing-in-out, left @effect-duration @easing-in-out, color @effect-duration @easing-in-out, width @effect-duration @easing-in-out;
-        will-change: top, left, width, color;
+    }
+    .@{tab-content} {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      &-item {
+        width: 100%;
+        height: 100%;
+        flex-shrink: 0;
       }
     }
     // top, bottom, left, right
     &-top, &-bottom {
-      flex-direction: column;
-      width: 100%;
-      .@{tab-bar} {
+      .@{tab-bar}, .@{tab-content} {
         flex-direction: row;
+      }
+      .@{tab-bar}-item {
+        height: @tabs-height;
       }
     }
     &-left, &-right {
-      flex-direction: row;
-      height: 100%;
-      .@{tab-bar} {
+      .@{tab-bar}, .@{tab-content} {
         flex-direction: column;
       }
     }
     &-top {
+      flex-direction: column;
       .@{tab-bar} {
         &-item {
           .hairline('bottom');
@@ -159,6 +158,7 @@ export default {
       }
     }
     &-bottom {
+      flex-direction: column-reverse;
       .@{tab-bar} {
         &-item {
           .hairline('top');
@@ -170,6 +170,7 @@ export default {
       }
     }
     &-left {
+      flex-direction: row;
       .@{tab-bar} {
         &-item {
           .hairline('right');
@@ -181,6 +182,7 @@ export default {
       }
     }
     &-right {
+      flex-direction: row-reverse;
       .@{tab-bar} {
         &-item {
           .hairline('left');
@@ -190,6 +192,15 @@ export default {
           border-left-width: 2px;
         }
       }
+    }
+    // animated
+    &-animated .@{tab-bar}-underline {
+      transition: top @effect-duration @easing-in-out, left @effect-duration @easing-in-out, color @effect-duration @easing-in-out, width @effect-duration @easing-in-out;
+      will-change: top, left, width, color;
+    }
+    &-animated .@{tab-content} {
+      transition: transform @effect-duration @easing-in-out;
+      will-change: transform;
     }
   }
 
