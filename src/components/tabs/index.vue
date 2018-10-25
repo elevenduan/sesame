@@ -1,4 +1,5 @@
 <script>
+  // TabBar // SegmentedControl
   export default {
     props: {
       prefixCls: {

@@ -1,42 +1,44 @@
 <template>
-  <svg :class="wrapCls">
+  <span v-if="image" :class="wrapCls" :style="{'background-image': `url(${image})`}"/>
+  <svg v-else :class="wrapCls" :style="{color}">
     <use :xlink:href="`#${type}`"/>
   </svg>
 </template>
 <script>
-import loadSprite from './loadSprite'
+  import loadSprite from './loadSprite'
 
-export default {
-  name: 'Icon',
-  props: {
-    prefixCls: {
+  export default {
+    name: 'Icon',
+    props: {
+      prefixCls: {
+        type: String,
+        default: 'am-icon'
+      },
+      size: {
+        type: String,
+        default: 'md',
+        validator: function (value) {
+          return ['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'].indexOf(value) !== -1
+        }
+      },
       type: String,
-      default: 'am-icon'
+      color: String,
+      image: String
     },
-    size: {
-      type: String,
-      default: 'md',
-      validator: function (value) {
-        return ['xxs', 'xs', 'sm', 'md', 'lg'].indexOf(value) !== -1
+    computed: {
+      wrapCls () {
+        const {prefixCls, type, size} = this
+        return {
+          [`${prefixCls}`]: true,
+          [`${prefixCls}-${type}`]: type,
+          [`${prefixCls}-${size}`]: size
+        }
       }
     },
-    type: String,
-    color: String
-  },
-  computed: {
-    wrapCls () {
-      const { prefixCls, type, size } = this
-      return {
-        [`${prefixCls}`]: true,
-        [`${prefixCls}-${type}`]: type,
-        [`${prefixCls}-${size}`]: size
-      }
+    created () {
+      loadSprite()
     }
-  },
-  created () {
-    loadSprite()
   }
-}
 </script>
 <style lang="less">
   @import '../style/index.less';
@@ -44,6 +46,8 @@ export default {
   .am-icon {
     fill: currentColor;
     background-size: cover;
+    display: inline-block;
+    vertical-align: middle;
     width: @icon-size-md;
     height: @icon-size-md;
 
@@ -70,6 +74,16 @@ export default {
     &-lg {
       width: @icon-size-lg;
       height: @icon-size-lg;
+    }
+
+    &-xl {
+      width: @icon-size-xl;
+      height: @icon-size-xl;
+    }
+
+    &-xxl {
+      width: @icon-size-xxl;
+      height: @icon-size-xxl;
     }
 
     &-loading {

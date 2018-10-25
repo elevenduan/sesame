@@ -11,6 +11,9 @@ import Button from './views/Button'
 import NavBar from './views/NavBar'
 import Toast from './views/Toast'
 import Tabs from './views/Tabs'
+import Popover from './views/Popover'
+import List from './views/List'
+import Result from './views/Result'
 
 Vue.use(Router)
 
@@ -55,6 +58,18 @@ export default new Router({
     {
       path: '/tabs',
       component: Tabs
+    },
+    {
+      path: '/popover',
+      component: Popover
+    },
+    {
+      path: '/list',
+      component: List
+    },
+    {
+      path: '/result',
+      component: Result
     }
   ]
 })
