@@ -14,6 +14,7 @@ import Tabs from './views/Tabs'
 import Popover from './views/Popover'
 import List from './views/List'
 import Result from './views/Result'
+import Carousel from './views/Carousel'
 
 Vue.use(Router)
 
@@ -70,6 +71,10 @@ export default new Router({
     {
       path: '/result',
       component: Result
+    },
+    {
+      path: '/carousel',
+      component: Carousel
     }
   ]
 })
