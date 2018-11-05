@@ -14,11 +14,16 @@
     Slider,
     data () {
       return {
+        current: this.selected,
         sliderWidth: 0,
         sliderHeight: 0,
         sliderCount: 0,
         listMoveLeft: 0,
         listMoveTop: 0,
+        sliderFirst: null,
+        sliderLast: null,
+        sliderTransition: {},
+        defaultTransition: {'transition': 'transform .2s ease-out'},
         touchEvents: this.getTouchEvents()
       }
     },
@@ -29,7 +34,7 @@
       },
       selected: {
         type: Number,
-        default: 2
+        default: 1
       },
       dots: {
         type: Boolean,
@@ -47,14 +52,7 @@
         type: Number,
         default: 3000
       },
-      infinite: {
-        type: Boolean,
-        default: false
-      },
-      beforeChange: {
-        type: Function
-      },
-      afterChange: {
+      onChange: {
         type: Function
       }
     },
@@ -66,17 +64,28 @@
           [`${prefixCls}-vertical`]: vertical
         }
       },
+      listWidth () {
+        let {sliderWidth, sliderCount, vertical} = this
+        return vertical ? sliderWidth : sliderWidth * sliderCount
+      },
+      listHeight () {
+        let {sliderHeight, sliderCount, vertical} = this
+        return vertical ? sliderHeight * sliderCount : sliderHeight
+      },
+      listTranslate () {
+        let {sliderWidth, sliderHeight, listMoveLeft, listMoveTop, current, vertical} = this
+        return vertical ? (-(current - 1) * sliderHeight + listMoveTop) : (-(current - 1) * sliderWidth + listMoveLeft)
+      },
       listStyle () {
-        let {sliderWidth, sliderHeight, sliderCount, listMoveLeft, listMoveTop, selected, vertical} = this
-        let translateLeft = -(selected - 1) * sliderWidth + listMoveLeft
-        let translateTop = -(selected - 1) * sliderHeight + listMoveTop
-        if (!sliderWidth || !sliderHeight) {
+        let {listWidth, listHeight, listTranslate, vertical, sliderTransition} = this
+        if (!listWidth || !listHeight) {
           return {}
         }
         return {
-          width: `${vertical ? sliderWidth : sliderWidth * sliderCount}px`,
-          height: `${vertical ? sliderHeight * sliderCount : sliderHeight}px`,
-          transform: vertical ? `translate3d(0px, ${translateTop}px, 0px)` : `translate3d(${translateLeft}px, 0px, 0px)`
+          width: `${listWidth}px`,
+          height: `${listHeight}px`,
+          transform: vertical ? `translate3d(0px, ${listTranslate}px, 0px)` : `translate3d(${listTranslate}px, 0px, 0px)`,
+          ...sliderTransition
         }
       }
     },
@@ -84,11 +93,12 @@
       initSlider () {
         console.log(this)
         let sliderList = (this.$slots.default || [])
-        let first = sliderList[0]
         let count = sliderList.length
-        if (!count) {
+        if (count <= 1) {
           return
         }
+        let first = sliderList[0]
+        let last = sliderList[count - 1]
         let width = first.elm.offsetWidth
         let height = first.elm.offsetHeight
         this.computedWHCount = 1
@@ -97,15 +107,44 @@
             this.init()
           }, 50)
         } else {
+          if (this.current < 1) {
+            this.current = 1
+          } else if (this.current > count) {
+            this.current = count
+          }
           this.sliderWidth = width
           this.sliderHeight = height
           this.sliderCount = count
+          this.sliderFirst = first
+          this.sliderLast = last
+        }
+      },
+      supportInfinite () {
+        let {sliderWidth, sliderHeight, listWidth, listHeight, listTranslate, vertical, sliderFirst, sliderLast} = this
+        if (!sliderFirst || !sliderLast) {
+          return
+        }
+        if (vertical) {
+          sliderLast.elm.style.top = ''
+          sliderFirst.elm.style.top = ''
+          if (listTranslate > 0) {
+            sliderLast.elm.style.top = `${-listHeight}px`
+          } else if (listTranslate < -(listHeight - sliderHeight)) {
+            sliderFirst.elm.style.top = `${listHeight}px`
+          }
+        } else {
+          sliderLast.elm.style.left = ''
+          sliderFirst.elm.style.left = ''
+          if (listTranslate > 0) {
+            sliderLast.elm.style.left = `${-listWidth}px`
+          } else if (listTranslate < -(listWidth - sliderWidth)) {
+            sliderFirst.elm.style.left = `${listWidth}px`
+          }
         }
       },
       getTouchEvents () {
         return {
           touchstart: e => {
-            console.log(e)
             this.touchObject = {
               startX: e.touches[0].pageX,
               startY: e.touches[0].pageY
@@ -119,6 +158,8 @@
             } else {
               this.listMoveLeft = Math.round(pageX - startX)
             }
+            // this.sliderTransition = {}
+            this.supportInfinite()
           },
           touchend: e => {
             this.handleSwipe(e)
@@ -129,52 +170,29 @@
         }
       },
       handleSwipe () {
-        // let {listMoveTop, listMoveLeft, sliderWidth, sliderHeight} = this
-
-        // let slidesToShow = this.state.slidesToShow
-        // if (this.props.slidesToScroll === 'auto') {
-        //   slidesToShow = this.state.slidesToScroll
-        // }
-        //
-        // if (this.touchObject.length > this.state.slideWidth / slidesToShow / 5) {
-        //   if (this.touchObject.direction === 1) {
-        //     if (
-        //       this.state.currentSlide >= this.state.slideCount - slidesToShow &&
-        //       !this.props.wrapAround
-        //     ) {
-        //       this.setState({easing: easing[this.props.edgeEasing]})
-        //     } else {
-        //       this.nextSlide()
-        //     }
-        //   } else if (this.touchObject.direction === -1) {
-        //     if (this.state.currentSlide <= 0 && !this.props.wrapAround) {
-        //       this.setState({easing: easing[this.props.edgeEasing]})
-        //     } else {
-        //       this.previousSlide()
-        //     }
-        //   }
-        // } else {
-        //   this.goToSlide(this.state.currentSlide)
-        // }
-        //
-        // // wait for `handleClick` event before resetting clickDisabled
-        // setTimeout(() => {
-        //   this.clickDisabled = false
-        // }, 0)
-        // this.touchObject = {}
-        //
-        // this.setState({
-        //   dragging: false
-        // })
+        let {listMoveTop, listMoveLeft, sliderWidth, sliderHeight, sliderCount, vertical} = this
+        let target = this.current
+        if (vertical) {
+          target += Math.round(-listMoveTop / sliderHeight)
+          this.listMoveTop = 0
+        } else {
+          target += Math.round(-listMoveLeft / sliderWidth)
+          this.listMoveLeft = 0
+        }
+        if (target < 1) {
+          target = sliderCount
+        } else if (target > sliderCount) {
+          target = 1
+        }
+        this.current = target
+        // this.sliderTransition = defaultTransition
+        this.supportInfinite()
       }
     },
     mounted () {
       this.$nextTick(function () {
         this.initSlider()
       })
-    },
-    updated () {
-      // this.init()
     }
   }
 </script>
@@ -206,6 +224,7 @@
       cursor: inherit;
     }
     &-slider {
+      position: relative;
       display: inline-block;
       vertical-align: top;
     }
