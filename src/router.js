@@ -15,6 +15,7 @@ import Popover from './views/Popover'
 import List from './views/List'
 import Result from './views/Result'
 import Carousel from './views/Carousel'
+import SegmentedControl from './views/SegmentedControl'
 
 Vue.use(Router)
 
@@ -75,6 +76,10 @@ export default new Router({
     {
       path: '/carousel',
       component: Carousel
+    },
+    {
+      path: '/segmented-control',
+      component: SegmentedControl
     }
   ]
 })
